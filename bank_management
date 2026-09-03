@@ -1,0 +1,194 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+
+using namespace std;
+
+// BankAccount class utilizing Object-Oriented Programming (OOP)
+class BankAccount {
+private:
+    int accountNumber;
+    string name;
+    double balance;
+
+public:
+    BankAccount() : accountNumber(0), name(""), balance(0.0) {}
+    BankAccount(int accNum, string accName, double initialBalance) {
+        accountNumber = accNum;
+        name = accName;
+        balance = initialBalance;
+    }
+
+    // Getter methods
+    int getAccountNumber() const { return accountNumber; }
+    string getName() const { return name; }
+    double getBalance() const { return balance; }
+
+    // Transaction methods
+    void deposit(double amount) {
+        if (amount > 0) {
+            balance += amount;
+            cout << "Deposit successful! New Balance: $" << balance << "\n";
+        } else {
+            cout << "Invalid deposit amount!\n";
+        }
+    }
+
+    void withdraw(double amount) {
+        if (amount > 0 && amount <= balance) {
+            balance -= amount;
+            cout << "Withdrawal successful! Remaining Balance: $" << balance << "\n";
+        } else {
+            cout << "Insufficient balance or invalid amount!\n";
+        }
+    }
+
+    void displayAccount() const {
+        cout << "Acc No: " << accountNumber 
+             << " | Name: " << name 
+             << " | Balance: $" << balance << "\n";
+    }
+};
+
+// File handling functions
+vector<BankAccount> loadAccounts() {
+    vector<BankAccount> accounts;
+    ifstream inFile("bank_data.txt");
+    if (!inFile) return accounts;
+
+    int accNum;
+    string name;
+    double balance;
+
+    while (inFile >> accNum) {
+        inFile.ignore();
+        getline(inFile, name);
+        inFile >> balance;
+        accounts.push_back(BankAccount(accNum, name, balance));
+    }
+    inFile.close();
+    return accounts;
+}
+
+void saveAccounts(const vector<BankAccount>& accounts) {
+    ofstream outFile("bank_data.txt");
+    for (const auto& acc : accounts) {
+        outFile << acc.getAccountNumber() << "\n" 
+                << acc.getName() << "\n" 
+                << acc.getBalance() << "\n";
+    }
+    outFile.close();
+}
+
+// 1. Create a New Account
+void createAccount(vector<BankAccount>& accounts) {
+    int accNum;
+    string name;
+    double initialDeposit;
+
+    cout << "\nEnter Account Number: ";
+    cin >> accNum;
+
+    for (const auto& acc : accounts) {
+        if (acc.getAccountNumber() == accNum) {
+            cout << "Account Number already exists!\n";
+            return;
+        }
+    }
+
+    cin.ignore();
+    cout << "Enter Account Holder Name: ";
+    getline(cin, name);
+
+    cout << "Enter Initial Deposit Amount: $";
+    cin >> initialDeposit;
+
+    accounts.push_back(BankAccount(accNum, name, initialDeposit));
+    saveAccounts(accounts);
+    cout << "Account created successfully!\n";
+}
+
+// 2. Deposit Money
+void depositMoney(vector<BankAccount>& accounts) {
+    int accNum;
+    double amount;
+    cout << "\nEnter Account Number: ";
+    cin >> accNum;
+
+    for (auto& acc : accounts) {
+        if (acc.getAccountNumber() == accNum) {
+            cout << "Enter Deposit Amount: $";
+            cin >> amount;
+            acc.deposit(amount);
+            saveAccounts(accounts);
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+}
+
+// 3. Withdraw Money
+void withdrawMoney(vector<BankAccount>& accounts) {
+    int accNum;
+    double amount;
+    cout << "\nEnter Account Number: ";
+    cin >> accNum;
+
+    for (auto& acc : accounts) {
+        if (acc.getAccountNumber() == accNum) {
+            cout << "Enter Withdrawal Amount: $";
+            cin >> amount;
+            acc.withdraw(amount);
+            saveAccounts(accounts);
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+}
+
+// 4. Check Balance / Display Account Details
+void checkBalance(const vector<BankAccount>& accounts) {
+    int accNum;
+    cout << "\nEnter Account Number: ";
+    cin >> accNum;
+
+    for (const auto& acc : accounts) {
+        if (acc.getAccountNumber() == accNum) {
+            cout << "\n--- Account Details ---\n";
+            acc.displayAccount();
+            return;
+        }
+    }
+    cout << "Account not found!\n";
+}
+
+// Main Menu
+int main() {
+    vector<BankAccount> accounts = loadAccounts();
+    int choice;
+
+    do {
+        cout << "\n===============================\n";
+        cout << "   BANK MANAGEMENT APPLICATION \n";
+        cout << "===============================\n";
+        cout << "1. Create New Account\n";
+        cout << "2. Deposit Money\n";
+        cout << "3. Withdraw Money\n";
+        cout << "4. Check Balance\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice (1-5): ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: createAccount(accounts); break;
+            case 2: depositMoney(accounts); break;
+            case 3: withdrawMoney(accounts); break;
+            case 4: checkBalance(accounts); break;
+            case 5: cout << "Exiting system...\n"; break;
+            default: cout << "Invalid selection!\n";
+        }
+    } while (choice != 5);
+
+    return 0;
+}
